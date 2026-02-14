@@ -1,4 +1,3 @@
-# coding-project-template
 # e-plantShopping
 
 e-plantShopping is a web-based plant shopping application that allows users to explore and purchase a variety of plants online. This project demonstrates modern front-end development practices using React and component-based architecture.
