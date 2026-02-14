@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addItem } from './CartSlice';
 import './ProductList.css';
 import CartItem from './CartItem';
@@ -8,9 +8,11 @@ function ProductList({ onHomeClick })
 {
     const dispatch = useDispatch();
 
+    // ✅ Access cart from Redux store
+    const cartItems = useSelector((state) => state.cart.items);
+
     const [showCart, setShowCart] = useState(false);
     const [showPlants, setShowPlants] = useState(false);
-    const [addedToCart, setAddedToCart] = useState({});   // ✅ state to track added products
 
     const plantsArray = [
         {
@@ -30,18 +32,18 @@ function ProductList({ onHomeClick })
                 }
             ]
         }
-        // (Rest of your categories remain SAME — no change needed)
     ];
 
-    // ✅ Add to Cart Function
+    // ✅ Calculate total quantity in cart
+    const totalQuantity = cartItems.reduce((total, item) =>
+    {
+        return total + item.quantity;
+    }, 0);
+
+    // ✅ Add to Cart
     const handleAddToCart = (plant) =>
     {
-        dispatch(addItem(plant));  // Send plant data to Redux
-
-        setAddedToCart((prevState) => ({
-            ...prevState,
-            [plant.name]: true
-        }));
+        dispatch(addItem(plant));
     };
 
     const handleHomeClick = (e) =>
@@ -73,9 +75,16 @@ function ProductList({ onHomeClick })
         <div>
             <div className="navbar">
                 <h2>Paradise Nursery</h2>
+
                 <div>
-                    <button onClick={handlePlantsClick}>Plants</button>
-                    <button onClick={handleCartClick}>Cart</button>
+                    <button onClick={handlePlantsClick}>
+                        Plants
+                    </button>
+
+                    {/* ✅ Show total quantity in cart */}
+                    <button onClick={handleCartClick}>
+                        Cart ({totalQuantity})
+                    </button>
                 </div>
             </div>
 
@@ -87,23 +96,31 @@ function ProductList({ onHomeClick })
                             <h2>{category.category}</h2>
 
                             <div className="plants-container">
-                                {category.plants.map((plant, plantIndex) => (
-                                    <div className="plant-card" key={plantIndex}>
-                                        <img src={plant.image} alt={plant.name} />
-                                        <h3>{plant.name}</h3>
-                                        <p>{plant.description}</p>
-                                        <p><strong>{plant.cost}</strong></p>
+                                {category.plants.map((plant, plantIndex) =>
+                                {
+                                    // ✅ Check if plant already exists in Redux cart
+                                    const itemExists = cartItems.find(
+                                        (item) => item.name === plant.name
+                                    );
 
-                                        <button
-                                            onClick={() => handleAddToCart(plant)}
-                                            disabled={addedToCart[plant.name]}
-                                        >
-                                            {addedToCart[plant.name]
-                                                ? "Added to Cart"
-                                                : "Add to Cart"}
-                                        </button>
-                                    </div>
-                                ))}
+                                    return (
+                                        <div className="plant-card" key={plantIndex}>
+                                            <img src={plant.image} alt={plant.name} />
+                                            <h3>{plant.name}</h3>
+                                            <p>{plant.description}</p>
+                                            <p><strong>{plant.cost}</strong></p>
+
+                                            <button
+                                                onClick={() => handleAddToCart(plant)}
+                                                disabled={itemExists}
+                                            >
+                                                {itemExists
+                                                    ? "Added to Cart"
+                                                    : "Add to Cart"}
+                                            </button>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                     ))}
